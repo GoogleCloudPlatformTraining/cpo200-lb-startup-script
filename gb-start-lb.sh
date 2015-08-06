@@ -30,6 +30,8 @@ MY_ZONE=$(curl \
 zone" \
 -H "Metadata-Flavor: Google" | awk -F/ '{print $4}')
 
+docker run cpo200/sqladmin python app/sqladmin.py start
+
 docker run \
 -e CLOUDSQL_IP=$SQL_IP \
 -e CLOUDSQL_PWD=$SQL_PW \
