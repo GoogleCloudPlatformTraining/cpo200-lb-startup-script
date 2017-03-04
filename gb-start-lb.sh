@@ -14,26 +14,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# retrieve the IP address of your Cloud SQL instance
-SQL_IP=$(curl \
-"http://metadata/computeMetadata/v1/instance/\
-attributes/sql-ip" \
--H "Metadata-Flavor: Google")
+
+# set IP address of your Cloud SQL Proxy
+SQL_IP="127.0.0.1"
+
 # retrieve the password of your Cloud SQL instance
 SQL_PW=$(curl \
 "http://metadata/computeMetadata/v1/instance/\
 attributes/sql-pw" \
 -H "Metadata-Flavor: Google")
+
 # retrieve the host zone of this Compute Engine instance
 MY_ZONE=$(curl \
 "http://metadata/computeMetadata/v1/instance/\
 zone" \
 -H "Metadata-Flavor: Google" | awk -F/ '{print $4}')
 
-docker run cpo200/sqladmin python app/sqladmin.py
-
+# run the docker container
 docker run \
+-d \
+-p 80:80 \
+--net="host" \
 -e CLOUDSQL_IP=$SQL_IP \
 -e CLOUDSQL_PWD=$SQL_PW \
 -e HOST_ZONE=$MY_ZONE \
--p 80:80 cpo200/guestbook
+cpo200/guestbook
+
+# retrieve the connection of your Cloud SQL instance
+SQL_CONNECTION_NAME=$(curl \
+"http://metadata/computeMetadata/v1/instance/\
+attributes/sql-connection-name" \
+-H "Metadata-Flavor: Google")
+
+# run the Cloud SQL proxy
+/proxy/cloud_sql_proxy -instances=$SQL_CONNECTION_NAME=tcp:3306
